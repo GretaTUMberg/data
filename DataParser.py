@@ -20,5 +20,20 @@ class DataParser:
         except FileNotFoundError:
             print('File not found')
 
+    # gets trip_nr (0..n) sets reader
+    def _map_index(self, trip_nr):
+        id_changes = -1
+
+        # go through rows until trip_id changes trip_nr times
+        prev_id = ""
+        for row in self.reader:
+            if row[0] != prev_id:
+                id_changes += 1
+                prev_id = row[0]
+
+            if id_changes == trip_nr:
+                break
+
+
     def __del__(self):
         self.file.close()
