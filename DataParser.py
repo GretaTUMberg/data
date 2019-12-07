@@ -84,7 +84,3 @@ class DataParser:
 
     def __del__(self):
         self.file.close()
-
-    def _map_index(self, trip_nr):
-        self.trip_id = '817ecb00-a229-11e9-a71a-ed8070118358'
-        self.group_id = 1
