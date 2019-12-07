@@ -69,7 +69,6 @@ class DataParser:
                 last_acc_y = self.acc_ys[-1]
                 last_speed = self.speeds[-1]
 
-
         self.file.seek(1)
 
     def get_trip(self, trip_nr):
@@ -106,7 +105,3 @@ class DataParser:
 
     def __del__(self):
         self.file.close()
-
-
-d = DataParser("dataframe.csv")
-t = d.get_trip(1)
