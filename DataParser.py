@@ -32,28 +32,45 @@ class DataParser:
         self.acc_ys = []
         self.speeds = []
 
+    def _add_row(self, row, last_acc_x, last_acc_y, last_speed):
+        self.timestamps.append(int(row[TIMESTAMP]))
+        self.headings.append(float(row[HEADING]))
+        self.lats.append(float(row[LAT]))
+        self.longs.append(float(row[LON]))
+        try:
+            last_acc_x = float(row[ACC_X])
+            last_acc_y = float(row[ACC_Y])
+            last_speed = float(row[SPEED])
+        except ValueError:
+            pass
+        finally:
+            self.acc_xs.append(last_acc_x)
+            self.acc_ys.append(last_acc_y)
+            self.speeds.append(last_speed)
+
     def _create_rows(self):
         last_acc_x = 0
         last_acc_y = 0
         last_speed = 0
+
+        first = True
+        first_time = -1
         for row in self.reader:
             if row[0] != self.trip_id:
                 break
             else:
-                self.timestamps.append(int(row[TIMESTAMP]))
-                self.headings.append(float(row[HEADING]))
-                self.lats.append(float(row[LAT]))
-                self.longs.append(float(row[LON]))
-                try:
-                    last_acc_x = float(row[ACC_X])
-                    last_acc_y = float(row[ACC_Y])
-                    last_speed = float(row[SPEED])
-                except ValueError:
-                    pass
-                finally:
-                    self.acc_xs.append(last_acc_x)
-                    self.acc_ys.append(last_acc_y)
-                    self.speeds.append(last_speed)
+                if first:
+                    first_time = self.timestamps[0]
+                    self.timestamps[0] = 0
+                    first = False
+                self._add_row(row, last_acc_x, last_acc_y, last_speed)
+                self.timestamps[-1] -= first_time
+                last_acc_x = self.acc_xs[-1]
+                last_acc_y = self.acc_ys[-1]
+                last_speed = self.speeds[-1]
+
+
+        self.file.seek(1)
 
     def get_trip(self, trip_nr):
         self._map_index(trip_nr)
@@ -70,6 +87,8 @@ class DataParser:
         # go through rows until trip_id changes trip_nr times
         prev_id = ""
         prev_groupid = -1
+
+        tell_position_pointer = 1
         for row in self.reader:
             if row[0] != prev_id:
                 id_changes += 1
@@ -77,10 +96,17 @@ class DataParser:
                 prev_groupid = row[1]
 
             if id_changes == trip_nr:
+                self._add_row(row, 0, 0, 0)
                 break
+
+            tell_position_pointer += 1
 
         self.trip_id = prev_id
         self.group_id = prev_groupid
 
     def __del__(self):
         self.file.close()
+
+
+d = DataParser("dataframe.csv")
+t = d.get_trip(1)
