@@ -26,14 +26,18 @@ class DataParser:
 
         # go through rows until trip_id changes trip_nr times
         prev_id = ""
+        prev_groupid = -1
         for row in self.reader:
             if row[0] != prev_id:
                 id_changes += 1
                 prev_id = row[0]
+                prev_groupid = row[1]
 
             if id_changes == trip_nr:
                 break
 
+        self.trip_id = prev_id
+        self.group_id = prev_groupid
 
     def __del__(self):
         self.file.close()
